@@ -32,21 +32,22 @@ func SiteMapGeneratorInit(filePath string, parallel int, level int, db output.In
 	}
 }
 
-func (sitemapGenerator SitemapGenerator) Generate(initialLink string) {
+func (sg SitemapGenerator) Generate(initialLink string) {
 	var level = 0
 
 	var links []string
 	links = append(links, initialLink)
-	for level <= sitemapGenerator.level && len(links) > 0 {
-		links = sitemapGenerator.generate(links, level)
+	for level <= sg.level && len(links) > 0 {
+		links = sg.generate(links, level)
 		level++
 	}
-	sitemapGenerator.siteMapResult.SaveSiteMap(sitemapGenerator.filePath, sitemapGenerator.db.FindAll())
+	err := sg.siteMapResult.SaveSiteMap(sg.filePath, sg.db.FindAll())
+	log.Println(err)
 }
 
-func (sitemapGenerator SitemapGenerator) generate(siteUrls []string, level int) []string {
+func (sg SitemapGenerator) generate(siteUrls []string, level int) []string {
 	var resultsLink []string
-	workerPool := concurrency_pattern.NewThreadPool(sitemapGenerator.parallel)
+	workerPool := concurrency_pattern.NewThreadPool(sg.parallel)
 	workerPool.Run()
 
 	tasksNumber := len(siteUrls)
@@ -57,7 +58,7 @@ func (sitemapGenerator SitemapGenerator) generate(siteUrls []string, level int) 
 		copySiteUrl := fmt.Sprintf("%s", siteUrl)
 		workerPool.AddTask(
 			func() {
-				sitemapGenerator.getLinks(copySiteUrl, level, channels)
+				sg.getLinks(copySiteUrl, level, channels)
 			})
 	}
 
@@ -68,15 +69,15 @@ func (sitemapGenerator SitemapGenerator) generate(siteUrls []string, level int) 
 	return resultsLink
 }
 
-func (sitemapGenerator SitemapGenerator) getLinks(siteUrl string, level int, ch chan []string) {
+func (sg SitemapGenerator) getLinks(siteUrl string, level int, ch chan []string) {
 	var arrayLink []string
 	urlParsed, err := url.ParseRequestURI(siteUrl)
 	if err == nil {
-		sitemapGenerator.db.Save(siteUrl)
-		if level < sitemapGenerator.level {
-			content, err := sitemapGenerator.urlContent.GetData(siteUrl)
+		sg.db.Save(siteUrl)
+		if level < sg.level {
+			content, err := sg.urlContent.GetData(siteUrl)
 			if err == nil {
-				arrayLink, err = sitemapGenerator.extractLinks.GetLinks(urlParsed, content)
+				arrayLink, err = sg.extractLinks.GetLinks(urlParsed, content)
 				if err != nil {
 					log.Println(err)
 				}
@@ -84,7 +85,6 @@ func (sitemapGenerator SitemapGenerator) getLinks(siteUrl string, level int, ch 
 				log.Println(err)
 			}
 		}
-
 	} else {
 		log.Println(err)
 	}

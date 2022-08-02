@@ -1,12 +1,13 @@
-package output
+package output_test
 
 import (
+	"github.com/cledupe/sitemap-generator/adapter/output"
 	"net/url"
 	"testing"
 )
 
-func extractLink(t *testing.T) {
-	var pageLink PageLink
+func TestExtractLink(t *testing.T) {
+	var pageLink output.PageLink
 	var html = `<!DOCTYPE html>
 					<html>
 					<body>
@@ -15,6 +16,7 @@ func extractLink(t *testing.T) {
 					
 					<p>An absolute URL: <a href="https://www.w3schools.com">W3Schools</a></p>
 					<p>A relative URL: <a href="tag_a.asp">The a tag</a></p>
+					<p>mail link: <a href="mailto:abc@example.com">The a tag</a></p>
 					
 					</body>
 					</html>`

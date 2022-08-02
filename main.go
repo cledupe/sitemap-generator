@@ -33,6 +33,10 @@ func main() {
 		parallel = runtime.NumCPU()
 	}
 
+	if maxDepth < 1 {
+		maxDepth = 1
+	}
+
 	var db output.MappingDB
 	var pageLink output.PageLink
 	var sitemapResult output.XMLFile
